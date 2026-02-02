@@ -1,9 +1,0 @@
-package com.backend.service;
-
-import jakarta.mail.MessagingException;
-
-public interface MedicalRecordEmailService {
-
-	void sendRecordToPatientAndDoctor(Long id) throws MessagingException;
-
-}

@@ -1,7 +1,0 @@
-package com.backend.service;
-
-public interface EmailService {
-
-	void sendMedicalRecord(String email, String subject, String emailBody, byte[] fileData, String fileName);
-
-}
