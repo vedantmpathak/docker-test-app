@@ -1,0 +1,177 @@
+package com.backend.service;
+
+import java.awt.desktop.UserSessionEvent.Reason;
+import java.time.LocalDate;
+<<<<<<< HEAD
+=======
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+>>>>>>> cf9be63978a0a6845c4a01fa5210c38340d149ef
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+<<<<<<< HEAD
+import com.backend.dtos.AppointmentViewDTO;
+import com.backend.entities.AppointmentEntity;
+=======
+import com.backend.dtos.DoctorAvailabilityResponseDto;
+import com.backend.dtos.HoldSlotRequestDto;
+import com.backend.dtos.HoldSlotResponseDto;
+import com.backend.dtos.SlotResponseDto;
+import com.backend.entities.AppointmentEntity;
+import com.backend.entities.AppointmentStatus;
+import com.backend.entities.AppointmentType;
+>>>>>>> cf9be63978a0a6845c4a01fa5210c38340d149ef
+import com.backend.repository.AppointmentRepository;
+import com.backend.repository.DoctorRepository;
+import com.backend.repository.PatientRepository;
+
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class AppointmentServiceImpl implements AppointmentService {
+		
+	@Autowired
+	private final AppointmentRepository appointmentRepository;
+	
+	@Autowired
+	private final DoctorRepository doctorRepository;
+	
+	@Autowired
+	private final PatientRepository patientRepository;
+	
+	private static final int SLOT_DURATION_MINUTES = 30;
+	
+	@Autowired
+	private final DoctorService doctorService;
+	
+
+	@Override
+	public LocalDate getLastVisit(Long patientId) {
+		// TODO Auto-generated method stub
+		return appointmentRepository.findLastVisitDate(patientId);
+	}
+
+	
+	//Get All Appointments --> ADMIN
+	@Override
+	public List<AppointmentViewDTO> getAllAppointments() {
+		// TODO Auto-generated method stub
+		return appointmentRepository.findAllAppointments();
+	}
+
+	
+	//Get All Appointments By Doctor & Patient --> ADMIN
+	@Override
+	public AppointmentEntity getAppointmentByPatientAndDoctor(
+            Long patientId,
+            Long doctorId
+    ) {
+        return appointmentRepository
+                .findByPatientAndDoctor(patientId, doctorId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                            "No appointment exists for selected patient & doctor"
+                        )
+                );
+    }
+	
+	@Override
+    public long getCompletedAppointmentsCountByPatient(Long patientId) {
+        return appointmentRepository.countByPatient_IdAndStatus(
+                patientId,
+                AppointmentStatus.COMPLETED
+        );
+    }
+    
+    @Override
+    public long getTotalDoctorsConsultedByPatient(Long patientId) {
+        return appointmentRepository.countDistinctDoctorsByPatientId(patientId);
+    }
+
+	@Override
+	public List<SlotResponseDto> getAvailableSot(Long doctorId, LocalDate date) {
+		
+	 List<DoctorAvailabilityResponseDto> avail=doctorService.getAvailabilityForDates(doctorId, date);
+	 
+	 
+	 for(DoctorAvailabilityResponseDto doctorAvailabilityResponseDto : avail) {
+		 System.out.println(doctorAvailabilityResponseDto);
+	 }
+	 
+	 if(avail.isEmpty()) {
+		 return List.of();
+	 }
+		
+	 
+	 LocalDateTime start = date.atStartOfDay();
+	 LocalDateTime end = date.plusDays(1).atStartOfDay();
+
+
+
+	 List<AppointmentEntity> app = appointmentRepository.findByDoctorIdAndAppointmentDateAndStatusIn(
+			 doctorId,date,List.of(AppointmentStatus.PENDING,AppointmentStatus.SCHEDULED));
+	 
+
+
+	 
+	 List<SlotResponseDto> res = new ArrayList<>();
+	 
+	for(DoctorAvailabilityResponseDto a : avail) {
+		
+		 LocalTime slotStart = a.getStartTime();
+		 
+		 
+		
+		while(slotStart.plusMinutes(SLOT_DURATION_MINUTES).isBefore(a.getEndTime()) ||  slotStart.plusMinutes(SLOT_DURATION_MINUTES).equals(a.getEndTime())) {
+			LocalTime slotEnd = slotStart.plusMinutes(SLOT_DURATION_MINUTES);
+			
+			  final LocalTime currentSlotStart = slotStart;
+			    final LocalTime currentSlotEnd = slotEnd;
+			
+			boolean isAvailable = app.stream().noneMatch(ap -> currentSlotStart.isBefore(ap.getEndTime()) && currentSlotEnd.isAfter(ap.getStartTime())
+					);
+			
+			
+			res.add(new SlotResponseDto(slotStart,isAvailable));
+			
+			slotStart = slotEnd;
+		}
+	}
+	 
+	 
+	 
+		return res;
+	}
+
+	@Override
+	public HoldSlotResponseDto holdSlot(@Valid HoldSlotRequestDto req) {
+		
+		
+		if(appointmentRepository.existsByDoctorIdAndAppointmentDateAndStartTimeAndEndTimeAndStatusIn(
+				req.getDoctorId(),req.getDate(),req.getStartTime(),req.getEndTime(),List.of(AppointmentStatus.PENDING,AppointmentStatus.SCHEDULED))
+				){
+					throw new RuntimeException("Slot already booked");
+				}
+				
+		AppointmentEntity newAppointmentEntity = new AppointmentEntity();
+		newAppointmentEntity.setAppointmentDate(req.getDate());
+		newAppointmentEntity.setEndTime(req.getEndTime());
+		newAppointmentEntity.setStartTime(req.getStartTime());
+		newAppointmentEntity.setDoctor(doctorRepository.getReferenceById(req.getDoctorId()));
+		newAppointmentEntity.setPatient(patientRepository.getReferenceById(req.getPatientId()));
+		newAppointmentEntity.setAppointmentType(AppointmentType.valueOf(req.getAppointmentType().toUpperCase()));
+		newAppointmentEntity.setStatus(AppointmentStatus.PENDING);
+		
+		appointmentRepository.save(newAppointmentEntity);
+		return new HoldSlotResponseDto(newAppointmentEntity.getId(),newAppointmentEntity.getStatus().name());
+	}
+	
+}

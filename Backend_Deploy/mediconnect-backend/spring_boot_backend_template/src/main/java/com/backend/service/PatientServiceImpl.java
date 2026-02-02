@@ -1,0 +1,44 @@
+package com.backend.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.backend.dtos.DoctorDTO;
+import com.backend.dtos.PatientDTO;
+import com.backend.repository.DoctorRepository;
+import com.backend.repository.PatientRepository;
+
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class PatientServiceImpl implements PatientService {
+	private final PatientRepository patientRepository;
+	
+	private final DoctorRepository doctorRepository;
+
+	//Search Patient's - ALL --> ADMIN
+	@Override
+	public List<String> getAllPatientNames() {
+		// TODO Auto-generated method stub
+		return patientRepository.findAllPatientNames();
+	}
+
+	//Get All Patients --> ADMIN
+	@Override
+	public List<PatientDTO> getAllPatients() {
+		// TODO Auto-generated method stub
+		return patientRepository.findAllPatients();
+	}
+
+	
+	//Get All Doctors --> ADMIN
+	@Override
+	public List<DoctorDTO> getAllDoctors() {
+		// TODO Auto-generated method stub
+		return doctorRepository.findAllDoctors();
+	}
+}

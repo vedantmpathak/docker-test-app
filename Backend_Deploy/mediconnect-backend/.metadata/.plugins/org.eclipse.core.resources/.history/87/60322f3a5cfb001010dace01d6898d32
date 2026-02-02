@@ -1,0 +1,35 @@
+package com.backend.service;
+
+import java.time.LocalDate;
+import java.util.List;
+
+<<<<<<< HEAD
+import com.backend.dtos.AppointmentViewDTO;
+import com.backend.entities.AppointmentEntity;
+=======
+import com.backend.dtos.HoldSlotRequestDto;
+import com.backend.dtos.HoldSlotResponseDto;
+import com.backend.dtos.SlotResponseDto;
+import com.backend.entities.AppointmentEntity;
+
+import jakarta.validation.Valid;
+>>>>>>> cf9be63978a0a6845c4a01fa5210c38340d149ef
+
+public interface AppointmentService {
+
+	LocalDate getLastVisit(Long patientId);
+<<<<<<< HEAD
+
+	//Get All Appointments --> ADMIN
+	List<AppointmentViewDTO> getAllAppointments();
+
+	//Get Appointments by Doctor & Patient
+	AppointmentEntity getAppointmentByPatientAndDoctor(Long patientId, Long doctorId);
+
+=======
+	long getCompletedAppointmentsCountByPatient(Long patientId);
+	long getTotalDoctorsConsultedByPatient(Long patientId);
+	List<SlotResponseDto> getAvailableSot(Long doctorId, LocalDate date);
+	HoldSlotResponseDto holdSlot(@Valid HoldSlotRequestDto req);
+>>>>>>> cf9be63978a0a6845c4a01fa5210c38340d149ef
+}

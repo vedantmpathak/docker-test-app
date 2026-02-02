@@ -1,0 +1,88 @@
+package com.backend.repository;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.backend.dtos.AppointmentViewDTO;
+import com.backend.entities.AppointmentEntity;
+import com.backend.entities.AppointmentStatus;
+
+@Repository
+public interface AppointmentRepository extends JpaRepository<AppointmentEntity, Long> {
+
+	
+
+
+	//gives latest appointment for patient
+	@Query("""
+	        SELECT MAX(a.appointmentDate)
+	        FROM AppointmentEntity a
+	        WHERE a.patient.id = :patientId
+	    """)
+	LocalDate findLastVisitDate(@Param("patientId") Long patientId);
+
+	
+	//Get All Appointments --> ADMIN
+	@Query("""
+	        SELECT new com.backend.dtos.AppointmentViewDTO(
+	            a.id,
+	            p.id,
+	            pu.name,
+	            d.id,
+	            du.name,
+	            a.appointmentDate,
+	            a.startTime
+	        )
+	        FROM AppointmentEntity a
+	        JOIN a.patient p
+	        JOIN p.user pu
+	        JOIN a.doctor d
+	        JOIN d.user du
+	        WHERE pu.isActive = true
+	          AND du.isActive = true
+	        ORDER BY a.appointmentDate DESC
+	    """)
+	List<AppointmentViewDTO> findAllAppointments();
+
+
+	//Get All Appointments By Doctor & Patient --> ADMIN
+	@Query("""
+	        SELECT a
+	        FROM AppointmentEntity a
+	        WHERE a.patient.id = :patientId
+	          AND a.doctor.id = :doctorId
+	    """)
+	    Optional<AppointmentEntity> findByPatientAndDoctor(
+	            @Param("patientId") Long patientId,
+	            @Param("doctorId") Long doctorId
+	    );
+
+
+	long countDistinctDoctorsByPatientId(Long patientId);
+
+	long countByPatient_IdAndStatus(Long patientId, AppointmentStatus completed);
+
+	
+
+	
+
+
+	List<AppointmentEntity> findByDoctorIdAndAppointmentDateAndStatusIn(Long doctorId, LocalDate date,
+			List<AppointmentStatus> of);
+
+	
+
+
+	boolean existsByDoctorIdAndAppointmentDateAndStartTimeAndEndTimeAndStatusIn(Long doctorId, LocalDate date,
+			LocalTime startTime, LocalTime endTime, List<AppointmentStatus> of);
+
+}

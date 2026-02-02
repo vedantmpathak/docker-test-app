@@ -1,0 +1,7 @@
+package com.backend.service;
+
+public interface MedicalRecordEmailService {
+
+	void sendRecordToPatientAndDoctor(Long id);
+
+}

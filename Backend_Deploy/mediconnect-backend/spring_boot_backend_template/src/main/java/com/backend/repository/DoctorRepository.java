@@ -1,0 +1,33 @@
+package com.backend.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import com.backend.dtos.DoctorDTO;
+import com.backend.entities.DoctorAvailability;
+import com.backend.entities.DoctorEntity;
+import com.backend.entities.WeekDay;
+
+@Repository
+public interface DoctorRepository extends JpaRepository<DoctorEntity,Long> {
+
+	//Get All Doctors --> ADMIN
+	@Query("""
+	        SELECT new com.backend.dtos.DoctorDTO(
+	            d.id,
+	            u.name,
+	            d.specialization
+	        )
+	        FROM DoctorEntity d
+	        JOIN d.user u
+	        WHERE u.isActive = true
+	    """)
+	List<DoctorDTO> findAllDoctors();
+	
+	
+	
+
+}

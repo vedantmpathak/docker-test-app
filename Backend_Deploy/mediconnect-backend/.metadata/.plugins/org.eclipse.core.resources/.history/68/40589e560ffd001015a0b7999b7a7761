@@ -1,0 +1,11 @@
+package com.backend.service;
+
+public class MedicalRecordEmailServiceImpl implements MedicalRecordEmailService {
+
+	@Override
+	public void sendRecordToPatientAndDoctor(Long id) {
+		// TODO Auto-generated method stub
+		
+	}
+
+}

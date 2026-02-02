@@ -1,0 +1,9 @@
+package com.backend.config;
+
+@Configuration
+@Primary
+public class DefaultJerseryServletConfig {
+    
+    @Bean
+    public ServletRegistrationBean<Servlet> defaultJersey(RestResourceMainConfig serviceConfig)
+}
